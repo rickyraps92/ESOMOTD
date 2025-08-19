@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ESO MOTD Creator – Mobile-Friendly Clone</title>
+  <style>
+    :root {
+      --bg: #0b0f14;
+      --card: #121821;
+      --text: #e6eef7;
+      --muted: #9fb3c8;
+      --accent: #38bdf8;
+      --success: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --border: #233142;
+      --shadow: 0 10px 25px rgba(0,0,0,.25);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      background: linear-gradient(180deg, #0a0f16 0%, #0b1220 100%);
+      color: var(--text);
+    }
+    .container { max-width: 1100px; margin: 0 auto; padding: 20px; }
+    header { text-align: center; margin-bottom: 16px; }
+    h1 { margin: 0 0 6px; font-weight: 800; letter-spacing: .2px; }
+    .subtitle { color: var(--muted); margin: 0 auto 14px; max-width: 60ch; }
+
+    .grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+    @media (min-width: 960px) { .grid { grid-template-columns: 1fr 1fr; } }
+
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; box-shadow: var(--shadow); overflow: hidden; }
+    .card h2 { font-size: 18px; margin: 0; }
+    .card .head { display:flex; align-items:center; justify-content:space-between; padding: 14px 16px; border-bottom: 1px solid var(--border); }
+    .card .body { padding: 16px; }
+
+    .row { display: grid; gap: 12px; }
+    .row.cols-2 { grid-template-columns: 1fr; }
+    @media (min-width: 640px) { .row.cols-2 { grid-template-columns: 1fr 1fr; } }
+
+    textarea, input[type="text"], input[type="number"], input[type="url"], input[type="search"], .fake-input {
+      width: 100%; padding: 12px 12px; border-radius: 12px; border: 1px solid var(--border);
+      background: #0e1520; color: var(--text); outline: none; transition: border .2s;
+    }
+    textarea { min-height: 180px; resize: vertical; }
+    textarea:focus, input:focus { border-color: var(--accent); }
+
+    label { font-size: 13px; color: var(--muted); display:block; margin-bottom: 6px; }
+
+    .toolbar { display:flex; flex-wrap: wrap; gap: 8px; align-items:center; }
+    .btn {
+      appearance: none; border: 1px solid var(--border); background: #0f1724; color: var(--text);
+      padding: 10px 12px; border-radius: 12px; cursor: pointer; font-weight: 600; font-size: 14px;
+      display:inline-flex; align-items:center; gap:8px; transition: transform .02s ease, background .2s, border-color .2s;
+    }
+    .btn:hover { background: #121d2e; }
+    .btn:active { transform: translateY(1px); }
+    .btn.primary { border-color: #1f3a56; background: #112136; color: #d9efff; }
+    .btn.success { border-color: #164e3a; background: #0d1f18; color: #d1fae5; }
+    .btn.danger  { border-color: #4b1111; background: #1a0d0d; color: #fee2e2; }
+    .btn.warning { border-color: #553a10; background: #1b1509; color: #fff7ed; }
+
+    .chips { display:flex; flex-wrap: wrap; gap: 8px; }
+    .chip { border: 1px solid var(--border); padding: 6px 10px; border-radius: 9999px; font-size: 12px; cursor: pointer; }
+
+    .statline { display:flex; gap: 12px; align-items:center; justify-content: space-between; color: var(--muted); font-size: 12px; margin-top: 8px; }
+    .statline .limit.over { color: #ffb4b4; }
+
+    /* Preview */
+    .preview { background: #0c131f; border: 1px dashed #2a3a52; padding: 12px; border-radius: 12px; min-height: 80px; }
+    .preview .img-holder { display:inline-flex; align-items:center; justify-content:center; border:1px solid #32465f; background:#0e1726; border-radius: 6px; margin:0 3px; }
+    .preview .img-holder span { font-size: 10px; color: #95aac4; padding: 2px 4px; opacity: .9; text-align:center; }
+    .help small { color: var(--muted); }
+
+    /* Color presets */
+    .swatches { display:flex; flex-wrap:wrap; gap:8px; }
+    .swatch { width: 28px; height: 28px; border-radius: 8px; border: 2px solid rgba(255,255,255,.12); cursor: pointer; }
+
+    .kbd { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background:#0f1724; border:1px solid var(--border); border-radius: 6px; padding: 1px 6px; font-size: 12px; }
+
+    footer { color: var(--muted); text-align:center; margin: 20px auto 32px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>ESO MOTD Creator</h1>
+      <p class="subtitle">Build colorful, image‑enhanced Guild Messages of the Day. Mobile‑friendly, copy‑ready ESO tags ( <span class="kbd">|cRRGGBBtext|r</span> and <span class="kbd">|tX:Y:path|t</span> ).</p>
+    </header>
+
+    <section class="grid">
+      <!-- Editor -->
+      <div class="card">
+        <div class="head"><h2>Editor</h2></div>
+        <div class="body">
+          <label for="motd">Type your message (ESO tags supported)</label>
+          <textarea id="motd" placeholder="Type here… Example: |cFFD700Welcome|r to the guild!
+Use the toolbar to add colors and images."></textarea>
+
+          <div class="statline">
+            <div>
+              <span id="charCount">0</span> / <span id="charMax">1000</span> characters
+            </div>
+            <div>
+              <button class="btn danger" id="clearBtn" title="Clear all">Clear</button>
+            </div>
+          </div>
+
+          <hr style="border-color: #1d2a3c; opacity:.35; margin:14px 0" />
+
+          <div class="row cols-2">
+            <!-- Colors -->
+            <div>
+              <label>Colors</label>
+              <div class="toolbar" style="gap:10px">
+                <input id="colorPicker" type="color" value="#ffd700" aria-label="Pick color" />
+                <button class="btn primary" id="applyColorBtn" title="Wrap selection with |cHEX…|r">Apply Color</button>
+                <button class="btn" id="removeColorsBtn" title="Strip |c…|r tags from selection or whole">Remove Colors</button>
+              </div>
+              <div class="swatches" style="margin-top:10px">
+                <!-- popular ESO-ready swatches -->
+                <div class="swatch" data-hex="#FF0000" style="background:#FF0000" title="Red"></div>
+                <div class="swatch" data-hex="#00FF00" style="background:#00FF00" title="Green"></div>
+                <div class="swatch" data-hex="#0000FF" style="background:#0000FF" title="Blue"></div>
+                <div class="swatch" data-hex="#FFD700" style="background:#FFD700" title="Gold"></div>
+                <div class="swatch" data-hex="#FFA500" style="background:#FFA500" title="Orange"></div>
+                <div class="swatch" data-hex="#FF00FF" style="background:#FF00FF" title="Magenta"></div>
+                <div class="swatch" data-hex="#00FFFF" style="background:#00FFFF" title="Cyan"></div>
+                <div class="swatch" data-hex="#FFFFFF" style="background:#FFFFFF" title="White"></div>
+                <div class="swatch" data-hex="#A855F7" style="background:#A855F7" title="Violet"></div>
+                <div class="swatch" data-hex="#22C55E" style="background:#22C55E" title="Emerald"></div>
+              </div>
+            </div>
+
+            <!-- Images -->
+            <div>
+              <label>Images (ESO texture tags)</label>
+              <div class="row" style="grid-template-columns: repeat(4, 1fr); align-items:end;">
+                <div>
+                  <label for="imgW">Width X</label>
+                  <input id="imgW" type="number" inputmode="numeric" value="25" min="1" />
+                </div>
+                <div>
+                  <label for="imgH">Height Y</label>
+                  <input id="imgH" type="number" inputmode="numeric" value="50" min="1" />
+                </div>
+                <div class="" style="grid-column: span 2;">
+                  <label for="imgPath">Image path</label>
+                  <input id="imgPath" type="text" placeholder="esoui\art\ava\ava_allianceflag_aldmeri.dds" />
+                </div>
+              </div>
+              <div class="toolbar" style="margin-top:8px">
+                <button class="btn primary" id="insertImgBtn" title="Insert |tX:Y:path|t at cursor">Insert Image Tag</button>
+                <button class="btn" id="insertAnchorBtn" title="Insert a non-breaking space">Insert Space</button>
+              </div>
+
+              <div style="margin-top:10px">
+                <div style="font-size:12px; color:var(--muted); margin-bottom:6px;">Alliance banner presets (vertical 25×50)</div>
+                <div class="chips">
+                  <span class="chip" data-flag="esoui\art\ava\ava_allianceflag_aldmeri.dds">Aldmeri</span>
+                  <span class="chip" data-flag="esoui\art\ava\ava_allianceflag_daggerfall.dds">Daggerfall</span>
+                  <span class="chip" data-flag="esoui\art\ava\ava_allianceflag_ebonheart.dds">Ebonheart</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <hr style="border-color: #1d2a3c; opacity:.35; margin:14px 0" />
+
+          <div class="toolbar">
+            <button class="btn success" id="copyBtn">Copy Output</button>
+            <button class="btn" id="selectAllBtn">Select All</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Output & Preview -->
+      <div class="card">
+        <div class="head"><h2>Output & Preview</h2></div>
+        <div class="body">
+          <label>Live Preview (approximate rendering)</label>
+          <div id="preview" class="preview"></div>
+
+          <div class="help" style="margin-top:12px">
+            <small>
+              <strong>Tips:</strong> Colors use <span class="kbd">|cRRGGBBtext|r</span>. Images use <span class="kbd">|tX:Y:path|t</span>.
+              ESO textures (like <em>.dds</em>) won't load in the browser; they're shown as placeholders in the preview.
+            </small>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" style="margin-top:16px">
+      <div class="head"><h2>How to Use</h2></div>
+      <div class="body">
+        <div class="row cols-2">
+          <div>
+            <h3 style="margin:4px 0 8px">Adding colour</h3>
+            <ol style="margin:0 0 8px 18px">
+              <li>Find a hex colour you like (e.g. Google "color picker").</li>
+              <li>Wrap text with <span class="kbd">|c#######text here|r</span>.</li>
+              <li>Replace the <em>#</em>s with your 6‑char hex and <em>text here</em> with your message.</li>
+            </ol>
+          </div>
+          <div>
+            <h3 style="margin:4px 0 8px">Adding images</h3>
+            <ol style="margin:0 0 8px 18px">
+              <li>Find a texture on wiki.esoui.com/Texture_List or via the "TextureIt" tool.</li>
+              <li>Use <span class="kbd">|tX:Y:imagelocation|t</span> in your message.</li>
+              <li>Replace <em>X</em> and <em>Y</em> with size (e.g., <strong>25×50</strong> for banners) and paste the image path.</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <div>Built as a clean, mobile‑first clone with quality‑of‑life upgrades.</div>
+    </footer>
+  </div>
+
+  <script>
+    const motd = document.getElementById('motd');
+    const preview = document.getElementById('preview');
+    const charCount = document.getElementById('charCount');
+    const charMaxEl = document.getElementById('charMax');
+    const charMax = 1000; charMaxEl.textContent = charMax;
+
+    const colorPicker = document.getElementById('colorPicker');
+    const applyColorBtn = document.getElementById('applyColorBtn');
+    const removeColorsBtn = document.getElementById('removeColorsBtn');
+
+    const imgW = document.getElementById('imgW');
+    const imgH = document.getElementById('imgH');
+    const imgPath = document.getElementById('imgPath');
+    const insertImgBtn = document.getElementById('insertImgBtn');
+    const insertAnchorBtn = document.getElementById('insertAnchorBtn');
+
+    const flagChips = document.querySelectorAll('.chip[data-flag]');
+
+    const clearBtn = document.getElementById('clearBtn');
+    const copyBtn = document.getElementById('copyBtn');
+    const selectAllBtn = document.getElementById('selectAllBtn');
+
+    function updateCounts() {
+      const len = motd.value.length;
+      charCount.textContent = len;
+      if (len > charMax) {
+        charCount.parentElement.classList.add('limit','over');
+      } else {
+        charCount.parentElement.classList.remove('limit','over');
+      }
+    }
+
+    function escapeHtml(s) {
+      return s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+    }
+
+    // Render ESO formatting into HTML preview
+    function renderPreview(text) {
+      let html = escapeHtml(text);
+
+      // Images: |tX:Y:path|t
+      html = html.replace(/\|t(\d+):(\d+):([^|\n\r]+?)\|t/g, (_, w, h, p) => {
+        const width = parseInt(w, 10); const height = parseInt(h, 10);
+        const path = p.trim();
+        const isUrl = /^https?:/i.test(path) || path.startsWith('data:');
+        if (isUrl) {
+          return `<img src="${path}" alt="ESO texture" style="width:${width}px;height:${height}px;border-radius:6px;margin:0 2px;vertical-align:middle;" />`;
+        }
+        // Placeholder for .dds and non-web paths
+        return `<span class="img-holder" style="width:${width}px;height:${height}px"><span>${escapeHtml(path)}</span></span>`;
+      });
+
+      // Colors: |cRRGGBBtext|r  (allow nested; replace from left to right)
+      // We'll convert each pair greedily while avoiding spanning across new pairs.
+      // Approach: iterate until no change.
+      let prev;
+      const colorRE = /\|c([0-9a-fA-F]{6})([\s\S]*?)\|r/g;
+      do { prev = html; html = html.replace(colorRE, (m, hex, inner) => `<span style="color:#${hex.toUpperCase()}">${inner}</span>`); } while (html !== prev);
+
+      // Newlines to <br>
+      html = html.replace(/\r?\n/g, '<br/>');
+
+      preview.innerHTML = html;
+    }
+
+    function insertAtSelection(before, after = '') {
+      const start = motd.selectionStart; const end = motd.selectionEnd;
+      const val = motd.value;
+      const selected = val.slice(start, end);
+      const insert = before + selected + after;
+      motd.value = val.slice(0, start) + insert + val.slice(end);
+      const caret = start + before.length + selected.length; // after selection
+      motd.focus();
+      motd.setSelectionRange(caret, caret);
+      updateCounts();
+      renderPreview(motd.value);
+    }
+
+    applyColorBtn.addEventListener('click', () => {
+      const hex = colorPicker.value.replace('#','').toUpperCase();
+      insertAtSelection(`|c${hex}`, `|r`);
+    });
+
+    removeColorsBtn.addEventListener('click', () => {
+      const start = motd.selectionStart; const end = motd.selectionEnd;
+      if (start !== end) {
+        const selected = motd.value.slice(start, end).replace(/\|c[0-9a-fA-F]{6}/g, '').replace(/\|r/g, '');
+        motd.setRangeText(selected, start, end, 'end');
+      } else {
+        motd.value = motd.value.replace(/\|c[0-9a-fA-F]{6}/g, '').replace(/\|r/g, '');
+      }
+      updateCounts(); renderPreview(motd.value); motd.focus();
+    });
+
+    insertImgBtn.addEventListener('click', () => {
+      const w = Math.max(1, parseInt(imgW.value || '25', 10));
+      const h = Math.max(1, parseInt(imgH.value || '50', 10));
+      const p = (imgPath.value || '').trim() || 'esoui\\\\art\\\\ava\\\\ava_allianceflag_aldmeri.dds';
+      insertAtSelection(`|t${w}:${h}:${p}|t`, '');
+    });
+
+    insertAnchorBtn.addEventListener('click', () => {
+      insertAtSelection('\u00A0', ''); // non-breaking space
+    });
+
+    flagChips.forEach(chip => chip.addEventListener('click', () => {
+      const p = chip.getAttribute('data-flag');
+      const w = parseInt(imgW.value || '25', 10); // allow user override
+      const h = parseInt(imgH.value || '50', 10);
+      insertAtSelection(`|t${w}:${h}:${p}|t`);
+    }));
+
+    document.querySelectorAll('.swatch').forEach(el => el.addEventListener('click', () => {
+      colorPicker.value = el.getAttribute('data-hex');
+    }));
+
+    clearBtn.addEventListener('click', () => { motd.value=''; updateCounts(); renderPreview(''); motd.focus(); });
+
+    copyBtn.addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(motd.value); copyBtn.textContent = 'Copied!'; setTimeout(()=>copyBtn.textContent='Copy Output', 1200); }
+      catch(e) { alert('Copy failed. Select the text and press Ctrl/Cmd+C.'); }
+    });
+
+    selectAllBtn.addEventListener('click', () => { motd.focus(); motd.select(); });
+
+    motd.addEventListener('input', () => { updateCounts(); renderPreview(motd.value); });
+
+    // Init
+    updateCounts(); renderPreview(motd.value);
+  </script>
+</body>
+</html>
