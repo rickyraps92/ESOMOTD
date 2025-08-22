@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ESO MOTD Tool — Clone (Flags + Newlines)</title>
+  <style>
+    :root{
+      --bg:#0b0d10;
+      --card:#141820;
+      --text:#e7ecf3;
+      --muted:#93a0b8;
+      --accent:#4da3ff;
+      --border:#212837;
+      --shadow:0 10px 30px rgba(0,0,0,.35);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue',Arial,'Noto Sans','Apple Color Emoji','Segoe UI Emoji';
+      background:linear-gradient(180deg,#0a0c10, #0b0d10 30%, #0b0d10);
+      color:var(--text);
+    }
+    .container{max-width:1100px;margin:40px auto;padding:0 16px}
+    h1{font-size:26px;margin:0 0 8px 0;letter-spacing:.3px}
+    .lead{margin:0 0 24px 0;color:var(--muted)}
+    .grid{display:grid;grid-template-columns:1fr;gap:16px}
+    @media (min-width: 920px){ .grid{grid-template-columns:1fr 1fr} }
+    .card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:14px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+    .card h3{margin:0;font-size:16px}
+    .card-header{
+      padding:12px 14px;
+      border-bottom:1px solid var(--border);
+      display:flex;align-items:center;justify-content:space-between;gap:8px
+    }
+    .card-body{padding:14px}
+    .toolbar{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 12px 0}
+    .btn{
+      background:#182132;
+      color:var(--text);
+      border:1px solid var(--border);
+      padding:8px 10px;
+      border-radius:10px;
+      cursor:pointer;
+      font-size:13px;
+    }
+    .btn:hover{background:#1b263b}
+    .btn-primary{background:var(--accent);border-color:#388fe3;color:#08111f}
+    .btn-primary:hover{filter:brightness(1.05)}
+    .btn-danger{background:#2b1a1a;border-color:#3b2222;color:#ffd2d2}
+    .btn-success{background:#1b2a1f;border-color:#2c4435;color:#b3ffcc}
+    .row{display:flex;gap:10px;align-items:center}
+    .spacer{flex:1}
+    .input{background:#0f131a;border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:10px}
+    .color-input{height:34px;width:48px;padding:0;border-radius:8px;cursor:pointer}
+    #motd{
+      min-height:180px;
+      padding:10px;
+      background:#0f131a;
+      border:1px dashed #2a3242;
+      border-radius:12px;
+      white-space:pre-wrap;
+      outline:none;
+    }
+    #copy-output{
+      width:100%;min-height:180px;
+      padding:10px;background:#0f131a;border:1px dashed #2a3242;border-radius:12px;
+      color:#d7e1f5;overflow:auto;white-space:pre-wrap
+    }
+    .counter{font-size:12px;color:var(--muted);margin-top:6px}
+    .preview{
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:12px;
+      margin-top:12px;
+      background:#0f131a;
+      min-height:120px;
+    }
+    .preview h4{margin:0 0 8px 0;font-size:14px;color:var(--muted)}
+    .pill{padding:2px 8px;border:1px solid var(--border);border-radius:999px;color:var(--muted);font-size:12px}
+    .badge{font-size:12px;padding:4px 8px;border-radius:999px;background:#0e1626;border:1px solid #22314a}
+    .footer{color:var(--muted);font-size:12px;margin-top:22px;text-align:center}
+    .flag-legend{display:flex;gap:8px;flex-wrap:wrap}
+    .eso-image{
+      display:inline-flex;align-items:center;justify-content:center;
+      border:1px dashed #3b4760;background:#0c111a;
+      margin:0 4px;vertical-align:middle;
+      font-size:11px;color:#9fb1cf;border-radius:6px;
+    }
+    .eso-image .path{opacity:.8}
+    .small{font-size:12px;color:var(--muted)}
+    .split-2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    @media (max-width:560px){ .split-2{grid-template-columns:1fr} }
+    img.flag{display:inline-block;vertical-align:middle;border-radius:6px;border:1px solid #2a3242}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>ESO MOTD Tool — Clone (Flags + Newlines)</h1>
+    <p class="lead">Type your message, press <b>Enter</b> for a new line (or use the button), and insert alliance flags. Live preview now shows real placeholder images for the flags.</p>
+
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <h3>Editor</h3>
+          <span class="pill" id="char-limit">0/1000</span>
+        </div>
+        <div class="card-body">
+          <div class="toolbar">
+            <div class="row">
+              <label class="small">Color:</label>
+              <input id="color-picker" class="color-input" type="color" value="#ffcc00" />
+              <button id="apply-color" class="btn btn-primary">Wrap Selection with Color</button>
+              <button id="newline" class="btn">Insert New Line</button>
+            </div>
+            <div class="spacer"></div>
+            <div class="row">
+              <span class="small">Insert Flag (50x100):</span>
+              <button class="btn" data-flag="esoui\\art\\ava\\ava_allianceflag_aldmeri.dds">Aldmeri</button>
+              <button class="btn" data-flag="esoui\\art\\ava\\ava_allianceflag_daggerfall.dds">Daggerfall</button>
+              <button class="btn" data-flag="esoui\\art\\ava\\ava_allianceflag_ebonheart.dds">Ebonheart</button>
+            </div>
+          </div>
+
+          <div id="motd" contenteditable="true" spellcheck="false" placeholder="Type your MOTD here..."></div>
+          <div class="counter">Tip: ESO color format is <code>|cABCDEFtext|r</code>. Images use <code>|tX:Y:path|t</code>. Use <b>Enter</b> or the button above for a carriage return.</div>
+
+          <div class="toolbar" style="margin-top:12px">
+            <button id="copy" class="btn btn-success">Copy Output</button>
+            <button id="clear" class="btn btn-danger">Clear</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3>Generated Output &amp; Preview</h3>
+        </div>
+        <div class="card-body">
+          <div id="copy-output"></div>
+          <div class="preview">
+            <h4>Live Preview</h4>
+            <div id="preview" style="white-space:normal"></div>
+          </div>
+          <div class="footer">
+            Flag placeholders use the UESP images but the copied output remains ESO texture codes (the <code>.dds</code> paths) for use in-game.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <div class="card-header">
+        <h3>Quick Reference</h3>
+      </div>
+      <div class="card-body split-2">
+        <div>
+          <div class="flag-legend">
+            <span class="badge">Aldmeri</span>
+            <code>|t50:100:esoui\art\ava\ava_allianceflag_aldmeri.dds|t</code>
+          </div>
+          <div class="flag-legend">
+            <span class="badge">Daggerfall</span>
+            <code>|t50:100:esoui\art\ava\ava_allianceflag_daggerfall.dds|t</code>
+          </div>
+          <div class="flag-legend">
+            <span class="badge">Ebonheart</span>
+            <code>|t50:100:esoui\art\ava\ava_allianceflag_ebonheart.dds|t</code>
+          </div>
+        </div>
+        <div>
+          <p class="small">Select text and click “Wrap Selection with Color” to surround it with <code>|cHEX|r</code> codes. Use the flag buttons to add 50x100 images at the cursor. Press <b>Enter</b> or click “Insert New Line”.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const motdEl = document.getElementById('motd');
+    const copyOut = document.getElementById('copy-output');
+    const previewEl = document.getElementById('preview');
+    const charLimit = document.getElementById('char-limit');
+    const colorPicker = document.getElementById('color-picker');
+    const applyColorBtn = document.getElementById('apply-color');
+    const copyBtn = document.getElementById('copy');
+    const clearBtn = document.getElementById('clear');
+    const newlineBtn = document.getElementById('newline');
+
+    const MAX = 1000;
+
+    // Keep plain-text content in the editor (no HTML formatting inside)
+    motdEl.addEventListener('paste', (e) => {
+      e.preventDefault();
+      const text = (e.clipboardData || window.clipboardData).getData('text/plain');
+      document.execCommand('insertText', false, text);
+    });
+
+    // Update outputs on input
+    function sync(){ 
+      const text = getEditorPlainText();
+      charLimit.textContent = text.length + '/' + MAX;
+      copyOut.textContent = text;
+      previewEl.innerHTML = renderPreviewHTML(text);
+    }
+    motdEl.addEventListener('input', sync);
+
+    // Insert explicit newline
+    newlineBtn.addEventListener('click', () => {
+      insertAtCursor('\\n');
+    });
+
+    function getEditorPlainText(){
+      // contenteditable may contain <div><br> etc; use innerText
+      return motdEl.innerText.replace(/\r\n/g, '\\n').replace(/\u00A0/g,' ');
+    }
+
+    function setEditorPlainText(txt){
+      motdEl.innerText = txt;
+      placeCaretAtEnd(motdEl);
+      sync();
+    }
+
+    function placeCaretAtEnd(el){
+      el.focus();
+      document.getSelection().selectAllChildren(el);
+      document.getSelection().collapseToEnd();
+    }
+
+    function getOffsets(el){
+      const text = getEditorPlainText();
+      const sel = window.getSelection();
+      if(!sel || sel.rangeCount === 0) return null;
+      const range = sel.getRangeAt(0);
+      if (!el.contains(range.commonAncestorContainer)) return null;
+
+      // Range to get absolute offsets
+      const pre = document.createRange();
+      pre.selectNodeContents(el);
+      pre.setEnd(range.startContainer, range.startOffset);
+      const start = pre.toString().length;
+
+      const pre2 = document.createRange();
+      pre2.selectNodeContents(el);
+      pre2.setEnd(range.endContainer, range.endOffset);
+      const end = pre2.toString().length;
+      return {start, end, text};
+    }
+
+    function replaceRange(src, start, end, insert){
+      return src.slice(0,start) + insert + src.slice(end);
+    }
+
+    function wrapSelectionWithColor(hex){
+      const off = getOffsets(motdEl);
+      if(!off) return;
+      const {start, end, text} = off;
+      if(start === end) return; // nothing selected
+      const HEX = hex.replace('#','').toUpperCase();
+      const mid = text.slice(start, end);
+      const wrapped = '|c' + HEX + mid + '|r';
+      const newText = replaceRange(text, start, end, wrapped);
+      setEditorPlainText(newText);
+    }
+
+    function insertAtCursor(str){
+      const off = getOffsets(motdEl);
+      if(!off){
+        setEditorPlainText(getEditorPlainText() + str);
+        return;
+      }
+      const {start, end, text} = off;
+      const newText = replaceRange(text, start, end, str);
+      setEditorPlainText(newText);
+    }
+
+    // Buttons: color + flags
+    applyColorBtn.addEventListener('click', () => wrapSelectionWithColor(colorPicker.value));
+
+    document.querySelectorAll('button[data-flag]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const path = btn.getAttribute('data-flag');
+        const esoCode = `|t50:100:${path}|t`;
+        insertAtCursor(esoCode);
+      });
+    });
+
+    copyBtn.addEventListener('click', async () => {
+      const text = getEditorPlainText();
+      try{
+        await navigator.clipboard.writeText(text);
+        copyBtn.textContent = 'Copied!';
+        setTimeout(() => copyBtn.textContent = 'Copy Output', 1200);
+      }catch(e){
+        const ta = document.createElement('textarea');
+        ta.value = text; document.body.appendChild(ta); ta.select();
+        document.execCommand('copy'); document.body.removeChild(ta);
+        copyBtn.textContent = 'Copied!';
+        setTimeout(() => copyBtn.textContent = 'Copy Output', 1200);
+      }
+    });
+
+    clearBtn.addEventListener('click', () => {
+      setEditorPlainText('');
+    });
+
+    // Preview renderer: convert ESO codes to HTML with newline support and flag placeholders
+    function renderPreviewHTML(src){
+      if(!src) return '';
+      let html = src.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+      // color codes |cFFFFFF ... |r
+      html = html.replace(/\|c([0-9A-Fa-f]{6})([\s\S]*?)\|r/g, (m,hex,txt) => {
+        return `<span style="color:#${hex.toUpperCase()}">${txt}</span>`;
+      });
+
+      // image codes |tW:H:path|t  (with mapping to provided placeholders)
+      const placeholders = [
+        {key:/ava_allianceflag_aldmeri/i, url:'https://images.uesp.net/6/66/ON-banner-Aldmeri_Dominion.png'},
+        {key:/ava_allianceflag_daggerfall/i, url:'https://images.uesp.net/7/78/ON-banner-Daggerfall_Covenant.png'},
+        {key:/ava_allianceflag_ebonheart/i, url:'https://images.uesp.net/9/94/ON-banner-Ebonheart_Pact.png'},
+      ];
+
+      html = html.replace(/\|t(\d+):(\d+):([^|]+)\|t/g, (m,w,h,path) => {
+        const width = parseInt(w,10), height = parseInt(h,10);
+        const match = placeholders.find(p => p.key.test(path));
+        if(match){
+          return `<img class="flag" src="${match.url}" width="${width}" height="${height}" alt="flag" />`;
+        }else{
+          const base = path.split(/[/\\]/).pop();
+          const style = `style="width:${width}px;height:${height}px"`;
+          return `<span class="eso-image" ${style} title="${path}"><span class="path">${base}</span></span>`;
+        }
+      });
+
+      // newline -> <br>
+      html = html.replace(/\n/g,'<br>');
+      return html;
+    }
+
+    // Initialize with sample content (includes a newline)
+    setEditorPlainText('Welcome to the ESO MOTD Tool Clone!\\nClick a flag to insert it, and press Enter for a new line.');
+  </script>
+</body>
+</html>
